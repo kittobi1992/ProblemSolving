@@ -1,0 +1,10 @@
+Data set 1:
+Some lights are not visible:
+x = -2, y = 0;
+x = -2, y = 2;
+x = 0, y = 2;
+x = 2, y = 0;
+x = 2, y = 2.
+Data set 2:
+Some lights are not visible:
+x = 2, y = 2.
