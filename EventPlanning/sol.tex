@@ -1,0 +1,29 @@
+\begin{frame}{Event Planning}
+
+\begin{block}{Gegeben}
+$N$ Besucher, $B$ Budget für Wochende, $H$ Hotels, $W$ Anzahl an in Frage kommenden Wochenden für das Event.\\
+Für jedes Hotel ist der Preis $p$ für eine Person für das Wochenende gegeben und die verfügbaren Zimmer $a_1, .., a_w$ für das entsprechende Wochenende $i$.
+\end{block}
+\begin{block}{Gesucht}
+Minimale Kosten für das gesamte Wochenende in einem verfügbaren Hotel, welches das Budget einhält oder \emph{''stay home''}, wenn kein Hotel verfügbar ist.
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{Event Planning: Lösung}
+
+\begin{itemize}
+\item Parameter $N, B, H, $ und $W$ einlesen.
+\item Für jedes Hotel überprüfen, ob $N*p \le B$ ($p = $ Preis für eine Person) (1)
+\item Wenn (1) gilt, dann überprüfen ob $\exists i \in \{1,..,w\}: a_i \le N$ (2)
+\item Wenn (1) und (2) gilt, dann überprüfen ob $N*p \le min$.
+\item Gebe $min$ aus oder falls kein Hotel gefunden wurde \emph{''stay home''}.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Event Planning: Lösung}
+
+\lstinputlisting[linerange={BEGIN_SOL-END_SOL},frame=single]{eventplan/sol.cpp} 
+
+\end{frame}

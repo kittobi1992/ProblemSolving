@@ -41,20 +41,27 @@ void findMaxScore(int& current_score, int& max_score, node *root, vector<ii>& ti
 	if(root->c && current_score > max_score) {
 		max_score = current_score;
 	}	
-	for(int i = 0; i < 26; i++) {
-		if(root->e[i] != NULL) {
-			int tile = getMaxTileIndex(i,tiles,in_use);
-			if(tile != INVALID) {
-				int score = tiles[tile].second;
-				current_score += score;
-				in_use[tile] = true;
-				findMaxScore(current_score,max_score,root->e[i],tiles,in_use);
-				in_use[tile] = false;
-				current_score -= score;
+	int possible_score = 0;
+	for(int i = 0; i < tiles.size(); i++) {
+		if(!in_use[i]) {
+			possible_score += tiles[i].second;
+		}
+	}
+	if(possible_score + current_score > max_score) {
+		for(int i = 0; i < 26; i++) {
+			if(root->e[i] != NULL) {
+				int tile = getMaxTileIndex(i,tiles,in_use);
+				if(tile != INVALID) {
+					int score = tiles[tile].second;
+					current_score += score;
+					in_use[tile] = true;
+					findMaxScore(current_score,max_score,root->e[i],tiles,in_use);
+					in_use[tile] = false;
+					current_score -= score;
+				}
 			}
 		}
 	}
-
 }
 
 int main() {
@@ -73,7 +80,7 @@ int main() {
 	int m;
 	cin >> m;
 	for(int i = 0; i < m; i++) {
-		int p;
+		int p; 
 		cin >> p;
 		vector<ii> tiles(p);
 		vector<bool> in_use(p,false);

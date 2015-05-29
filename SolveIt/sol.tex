@@ -1,0 +1,47 @@
+\begin{frame}[fragile]{Solve It}
+	\begin{block}{Aufgabe}
+		Gegeben ist folgende Funktion:
+		\begin{center}
+		$f(x) = p*e^{-x} + q*\sin(x) + r*\cos(x) + s*\tan(x) + t * x^2 + u $ 
+		$0 \le p, r \le 20, \quad -20 \le q,s,t \le 0, \quad u \in \mathbb{N}$
+		\end{center}
+	\end{block}
+	\begin{block}{Frage:}
+		Löse die Gleichung:
+		\begin{center}
+		$f(x) = 0$ 
+		\end{center}
+	\end{block}
+\end{frame}
+\begin{frame}[fragile]{Solve It - Beobachtung}
+	\begin{block}{Ableitung}
+		\begin{center}
+		$f'(x) = -p*e^{-x} + q*\cos(x) - r*\sin(x) + s*\cos^2(x){-1} + 2t * x \le 0$ \\ für $0 \le x \le 1$ \\
+		$0 \le p, r \le 20, \quad -20 \le q,s,t \le 0, \quad u \in \mathbb{Z}$
+		\end{center}
+		\begin{center}
+		$\Rightarrow f$ ist monoton fallend. 
+		\end{center}
+	\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Solve It - Lösungen}
+	\begin{block}{Lösung 1}
+		\begin{itemize}
+			\item Binäre Suche zwischen $l_0 = 0$ und $r_0 = 1$
+			\item Wenn $f(\frac{l_i+r_i}{2}) > 0 \Rightarrow l_{i+1} = \frac{l_i+r_i}{2}$ 
+			\item Ansonsten $\Rightarrow r_{i+1} = \frac{l_i+r_i}{2}$
+			\item Abbrechen wenn $|f(\frac{l_i+r_i}{2})| < \epsilon$ ($\epsilon = 10^{-6}$ hier ausreichend)
+		\end{itemize}
+	\end{block}
+
+	\begin{block}{Lösung 2}
+		\begin{itemize}
+			\item Verwende Newton-Verfahren
+			\item Sei $x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}$ und $f(x^*) = 0 \Rightarrow \lim\limits_{n \to \infty} x_n = x^*$
+			\item Startwert $x_0 = 0.5$ ausreichend
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+
