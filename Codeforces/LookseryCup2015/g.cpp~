@@ -1,0 +1,39 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <map>
+
+using namespace std;
+typedef long long ll;
+
+vector<ll> res;
+
+int main() {
+
+	int n;
+	cin >> n;
+	for(int i = 0; i < n; i++) {
+		ll a; cin >> a;
+		res.push_back(a);
+	}
+
+	for(int i = res.size()-2; i >= 0; i--) {
+		for(int j = i; j < res.size()-1; j++) {
+			if(res[j] > res[j+1]) {
+				res[j]--;
+				res[j+1]++;
+				swap(res[j],res[j+1]);
+				if(res[j] > res[j+1]) {
+					cout << ":(" << endl;
+					return 0;
+				}
+			}	
+		}
+	}
+
+	for(int i = 0; i < res.size()-1; i++) {
+		cout << res[i] << " ";
+	}
+	cout << fixed << setprecission(20) << res[res.size()-1] << endl;
+
+	return 0;
+}
