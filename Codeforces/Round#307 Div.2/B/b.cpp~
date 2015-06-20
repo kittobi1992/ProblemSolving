@@ -5,11 +5,7 @@
 
 using namespace std;
 
-int word_count(map<char,int>& count, string& word) {
-	map<char,int> count_w;
-	for(int i = 0; i < word.size(); i++) {
-		count_w[word[i]]++;
-	}
+int word_count(map<char,int>& count, map<char,int>& count_w) {
 	int min = INT_MAX;
 	for(int i = 0; i < 30; i++) {
 		char c = ((char) (i + 'a'));
@@ -39,22 +35,39 @@ int main() {
 	for(int i = 0; i < a.size(); i++) {
 		count_a[a[i]]++;
 	}
-
-	string k;
-	int b_count = word_count(count_a,b);
-	int c_count = word_count(count_a,c);
-	if(b_count >= c_count) {
-		addWord(b_count,k,b,count_a);
-		c_count = word_count(count_a,c);
-		addWord(c_count,k,c,count_a);
+	map<char,int> count_b;
+	for(int i = 0; i < b.size(); i++) {
+		count_b[b[i]]++;
 	}
-	else {
-		addWord(c_count,k,c,count_a);
-		b_count = word_count(count_a,b);
-		addWord(b_count,k,b,count_a);
+	map<char,int> count_c;
+	for(int i = 0; i < c.size(); i++) {
+		count_c[c[i]]++;
 	}
 
 	
+	int best = -1;
+	int bw1 = -1;
+	int bw2 = -1;
+	int n = a.size();
+	string tmp = "";
+	map<char,int> tmp_count_a(count_a);
+	for(int i = 0; i < n; i++) {
+		int cb = word_count(tmp_count_a,count_b);
+		if(cb + i > best) {
+			best = cb + i;
+			bw1 = cb;
+			bw2 = i;
+		}
+		int cc = word_count(tmp_count_a,count_c);
+		if(cc == 0)
+			break;
+		addWord(1,tmp,c,tmp_count_a);
+	}
+
+
+	string k;	
+	addWord(bw1,k,b,count_a);
+	addWord(bw2,k,c,count_a);
 	for(int i = 0; i < 30; i++) {
 		char c = ((char) (i + 'a'));
 		if(count_a[c] > 0) {
@@ -63,7 +76,7 @@ int main() {
 			}
 		}
 	}
-
+	cout << a << endl;
 	cout << k << endl;
 
 	return 0;
