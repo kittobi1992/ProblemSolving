@@ -1,0 +1,16 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <climits>
+
+using namespace std;
+
+
+
+int main() {
+	
+	while(true) {
+		double tank = 0.0;
+	}
+
+	return 0;
+}
