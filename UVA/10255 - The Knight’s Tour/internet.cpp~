@@ -1,0 +1,36 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <climits>
+
+using namespace std;
+
+
+
+int main() {
+	
+	int n, r, c;
+	while(cin >> n >> r >> c) {
+		int n;
+		cin >> n;
+		if(n == 0)
+			break;
+
+		MaxFlow mf(n);
+		int s, t, c;
+		cin >> s >> t >> c;
+
+		for(int i = 0; i < c; i++) {
+			int u,v,f;
+			cin >> u >> v >> f;
+			mf.addEdge(--u,--v,f);
+		}
+
+
+		int max_flow = mf.maxFlow(--s,--t);
+		cout << "Network " << network << endl;
+		cout << "The bandwidth is " << max_flow << ".\n" << endl;
+		network++;
+	}
+
+	return 0;
+}
