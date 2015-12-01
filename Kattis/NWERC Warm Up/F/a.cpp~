@@ -1,0 +1,14 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <map>
+
+using namespace std;
+
+#define PI acos(-1)
+
+int main() {
+
+	cout << PI << endl;
+
+	return 0;
+}
