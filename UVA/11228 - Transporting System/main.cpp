@@ -3,34 +3,31 @@
 using namespace std;
 
 class UnionFind {
-public:
-  vector<int> parent, size;
 
+public:
   UnionFind() {}
   
-  void init(int n) {
-    parent.assign(n,0); size.assign(n,1);
-    for(int i = 0; i < n; ++i)
-      parent[i] = i; 
+  void init(int N) {
+    uf.assign(N,-1);
   }
   
-  int findSet(int n) { // Pfadkompression
-	  if (parent[n] != n) parent[n] = findSet(parent[n]);
-	  return parent[n];
+  int findSet(int i) {
+    if(uf[i] < 0) return i;
+    uf[i] = findSet(uf[i]);
+    return uf[i];
   }
-
-  void linkSets(int a, int b) { // Union by rank.
-	  if (size[a] < size[b]) parent[a] = b;
-	  else if (size[b] < size[a]) parent[b] = a;
-	  else {
-		  parent[a] = b;
-		  size[b]++;
-	  }
+  
+  void linkSets(int i, int j) {
+    if(abs(uf[i]) < abs(uf[j])) { 
+      uf[j] += uf[i]; uf[i] = j; 
+    } else {
+      uf[i] += uf[j]; uf[j] = i; 
+    }
   }
-
-  void unionSets(int a, int b) { // Diese Funktion aufrufen.
-	  if (findSet(a) != findSet(b)) linkSets(findSet(a), findSet(b));
-  }
+  
+  void unionSets(int i, int j) {
+    if(findSet(i) != findSet(j)) linkSets(findSet(i),findSet(j));
+  } 
   
   int countSets(int n) {
     set<int> sets;
@@ -39,6 +36,9 @@ public:
     }
     return sets.size();
   }
+  
+private:
+  vector<int> uf;
 };
 
 typedef pair<double,double> point;
