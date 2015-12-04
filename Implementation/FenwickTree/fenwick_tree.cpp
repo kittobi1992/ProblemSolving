@@ -38,7 +38,7 @@ class FenwickTree {
 			i += (i & (-i));
 		}
 	}
-
+	
 };
 
 
