@@ -12,12 +12,20 @@ public:
   typedef pair<int,int> rank;
   
   SuffixArray(string& s) : n(s.size()+1), s(s), sa(s.size()+1) {
-    s.push_back('$');
+    s = s + '$';
     memset(ra,0,sizeof(ra)); memset(temp_ra,0,sizeof(temp_ra)); memset(sa_idx,0,sizeof(sa_idx));
     memset(phi,0,sizeof(phi)); memset(lcp,0,sizeof(lcp)); memset(plcp,0,sizeof(plcp));
     for(int i = 0; i < sa.size(); i++)	{ sa[i] = i; sa_idx[i] = i; }
     constructSA();
     computeLCP();
+  }
+  
+  int operator[](const int i) {
+    return sa[i];
+  }
+  
+  int getLcp(const int i) {
+    return lcp[i];
   }
   
   //Returns range of suffixes, which prefixes match with pattern p (|p| = m). Time Complexity O(m*log(n))
@@ -47,7 +55,7 @@ public:
   
   void printSuffixArray() {
     for(int i = 0; i < n; i++)
-      cout << sa[i] << " " << s.substr(sa[i]) << endl;
+      cout << sa[i] << " " << lcp[i] << " " << s.substr(sa[i]) << endl;
   }
   
 private:
@@ -86,7 +94,7 @@ private:
       for(i = L = 0; i < n; i++) {
 	if(phi[i] == -1) { plcp[i] = 0; continue; }
 	//L is incremented by a maximum amount of n times => Time Complexity O(n)
-	while(T[i + L] == T[phi[i] + L]) L++;
+	while(s[i + L] == s[phi[i] + L]) L++;
 	plcp[i] = L;
 	L = max(L-1,0);
       }
@@ -101,16 +109,19 @@ private:
 };
 
 int main() {
-  string s = "GATAGACA";
-  SuffixArray sa(s);
+  string s; cin >> s;
+  string r = s;
+  reverse(r.begin(),r.end());
+  string T = s + '&' + r;
+  SuffixArray sa(T);
   sa.printSuffixArray();
   
-  vector<string> pattern { "GA", "TAG", "A", "C", "D" };
+  /*vector<string> pattern { "GA", "TAG", "A", "C", "D" };
   for(int i = 0; i < pattern.size(); i++) {
     string p = pattern[i];
     ii res = sa.findPattern(p);
     cout << "Pattern \"" << p << "\" appears " << (res.first != -1 ? (res.second-res.first+1) : 0) << " times in string \"" << s<< "\"" << endl;
-  }
+  }*/
   
   return 0;
 }
