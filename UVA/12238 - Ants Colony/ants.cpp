@@ -4,79 +4,72 @@
 using namespace std;
 
 typedef long long ll;
-typedef vector<vector<ll>> graph;
+typedef pair<int,ll> il;
+typedef vector<vector<il>> graph;
 typedef vector<int> vi;
 
 #define INVALID -1
 
 int n;
+vector<ll> sp;
 
-vector<int> L, E, H; 
-int idx = 0;
+class LCA {
 
-vector<vector<int>> rmq;
-
-#define MAX_N 20000
-#define LOG_TWO_N 100
-class RMQ {
-	private:
-		vector<int> _A;
-		vector<vector<int>> SpT;
-
-	public:
-	RMQ(int n, vector<int> A) {
-		_A.resize(n);
-		SpT.resize(n,vector<int>(ceil(log(n)+1),0));
-		for (int i = 0; i < n; i++) {
-			_A[i] = A[i];
-			SpT[i][0] = i;
-		}
-		for (int j = 1; (1<<j) <= n; j++)
-			for (int i = 0; i + (1<<j) - 1 < n; i++)
-				if (_A[SpT[i][j-1]] < _A[SpT[i+(1<<(j-1))][j-1]])
-					SpT[i][j] = SpT[i][j-1];
-				else
-					SpT[i][j] = SpT[i+(1<<(j-1))][j-1];
-	}
-
-	int query(int i, int j) {
-		int k = (int)floor(log((double)j-i+1) / log(2.0));
-		if (_A[SpT[i][k]] <= _A[SpT[j-(1<<k)+1][k]]) 
-			return SpT[i][k];
-		else
-			return SpT[j-(1<<k)+1][k];
-	} 
+public:
+  LCA(graph& g) : g(g) {
+    N = g.size(); MAX_LOG = max((int)ceil(log2(N)),1);
+    h.assign(N,0); parent.assign(N,vector<int>(MAX_LOG,-1));
+    buildLCA(0);
+  }
+  
+  int lca(int u, int v) {
+    if(h[v] < h[u])
+      swap(u,v);
+    for(int i = MAX_LOG-1; i >= 0; i--)
+      if(parent[v][i]+1 && h[parent[v][i]] >= h[u])
+	v = parent[v][i];
+    if(v == u)
+      return v;
+    for(int i = MAX_LOG-1; i >= 0; i--) {
+      if(parent[v][i] - parent[u][i]) {
+	v = parent[v][i]; u = parent[u][i];
+      }
+    }
+    return parent[v][0];
+  }
+  
+private:
+  void buildLCA(int v, int p = -1) {
+    parent[v][0] = p;
+    if(p + 1)
+      h[v] = h[p] + 1;
+    for(int i = 1; i < MAX_LOG; i++)
+      if(parent[v][i-1] + 1)
+	parent[v][i] = parent[parent[v][i-1]][i-1];
+    for(il node : g[v]) {
+      int u = node.first;
+      if(p - u)
+	buildLCA(u,v);
+    }
+  }
+  
+  graph g;
+  int N, MAX_LOG;
+  vector<int> h;
+  vector<vector<int>> parent;
 };
 
 
-int lca(int l, int r, RMQ& rmq) {
-	if(H[l] > H[r])
-		swap(l,r);
-	return E[rmq.query(H[l],H[r])];
-}
-
-void dfs(int start_node, int cur, ll distance, int depth, graph& g, graph& sp, vector<bool>& visited) {
-	visited[cur] = true;
-	sp[start_node][cur] = distance;
-	H[cur] = idx;
-	E[idx] = cur;
-	L[idx++] = depth;
-	for (int i = 0; i < g[cur].size(); i++) {
-		if(!visited[g[cur][i]]) {
-			dfs(start_node, g[cur][i], distance + sp[cur][g[cur][i]], depth+1, g, sp, visited);
-			E[idx] = cur;
-			L[idx++] = depth;
+void dfs(int cur_node, int parent, ll distance, graph& g) {
+	sp[cur_node] = distance;
+	for (int i = 0; i < g[cur_node].size(); i++) {
+		int u = g[cur_node][i].first;
+		ll c = g[cur_node][i].second;
+		if(u - parent) {
+			dfs(u, cur_node, distance + c, g);
 		}
 	}
 }
-
-void buildLCAArrays(graph& g, graph& sp) {
-	vector<bool> visited(n,false);
-	rmq.assign(ceil(log2(2*n)) + 1, vector<int>(2*n));
-	idx = 0;
-	H.assign(2*n,-1);
-	dfs(0, 0, 0, 0, g, sp, visited);
-} 
 
 int main() {
 
@@ -84,41 +77,27 @@ int main() {
 		if(n == 0)
 			break;
 
-		rmq.clear();
-		L.clear();
-		L.resize(2*n);
-		E.clear();
-		E.resize(2*n);
-		H.clear();
-		H.resize(2*n);
-
-		graph g(n,vector<ll>());
-		graph sp(n,vector<ll>(n,0));
+		graph g(n,vector<il>()); 
+		sp.assign(n,0);
 		for(int i = 1; i < n; i++) {
 			ll a, l;
 			cin >> a >> l;
-			g[i].push_back(a);
-			g[a].push_back(i);
-			sp[i][a] = l;
-			sp[a][i] = l;
+			g[i].push_back(make_pair(a,l));
+			g[a].push_back(make_pair(i,l));
 		}		
 
 		
-		buildLCAArrays(g, sp);
-		RMQ rmq(L.size(), L);
+		LCA l(g);
+		dfs(0,-1,0,g);
 	
 		int q;
 		cin >> q;
-		for(int i = 0; i < q-1; i++) {
+		for(int i = 0; i < q; i++) {
 			int s,t;
 			cin >> s >> t;
-			int a = lca(s,t,rmq);
-			cout << (sp[0][s] + sp[0][t] - 2*sp[0][a]) << " ";
+			int a = l.lca(s,t);
+			cout << (sp[s] + sp[t] - 2*sp[a]) << (i != q-1 ? " " : "\n");
 		}
-		int s,t;
-		cin >> s >> t;
-		int a = lca(s,t,rmq);
-		cout << (sp[0][s] + sp[0][t] - 2*sp[0][a]) << endl;
 
 	}
 	
