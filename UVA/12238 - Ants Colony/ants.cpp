@@ -9,54 +9,65 @@ typedef vector<vector<il>> graph;
 typedef vector<int> vi;
 
 #define INVALID -1
+#define MAXN 100000
 
-int n;
-vector<ll> sp;
+int N;
+ll sp[MAXN];
+int H[MAXN];
+int E[2*MAXN];
+int L[2*MAXN];
 
-class LCA {
+vector<vector<int>> rmq(floor(log2(2*MAXN)) + 1, vector<int>(2*MAXN));
 
-public:
-  LCA(graph& g) : g(g) {
-    N = g.size(); MAX_LOG = max((int)ceil(log2(N)),1);
-    h.assign(N,0); parent.assign(N,vector<int>(MAX_LOG,-1));
-    buildLCA(0);
-  }
-  
-  int lca(int u, int v) {
-    if(h[v] < h[u])
-      swap(u,v);
-    for(int i = MAX_LOG-1; i >= 0; i--)
-      if(parent[v][i]+1 && h[parent[v][i]] >= h[u])
-	v = parent[v][i];
-    if(v == u)
-      return v;
-    for(int i = MAX_LOG-1; i >= 0; i--) {
-      if(parent[v][i] - parent[u][i]) {
-	v = parent[v][i]; u = parent[u][i];
+void initRMQ () {
+  for(int i = 0, s = 1, ss = 1; s <= 2*N ; ss=s, s*=2 , i++) {
+    for(int l = 0; l + s <= 2*N ; l++) {
+      if(i == 0) rmq [0][l] = l;
+      else {
+	int r = l + ss;
+	rmq[i][l] = (L[rmq[i -1][l]] <= L[rmq[i -1][r]] ? rmq[i -1][l] : rmq[i -1][r]);
       }
     }
-    return parent[v][0];
+  }
+}
+
+// returns index of minimum ! [a, b)
+int queryRMQ (int l, int r) {
+  if(l >= r) return l;
+  int s = floor (log2(r-l)); r = r - (1 << s);
+  return (L[rmq[s][l]] <= L[rmq[s][r]] ? rmq[s][l] : rmq[s][r]);
+}
+
+class LCA {
+public:
+  LCA(graph& g) : g(g) {
+    idx = 0;
+    buildLCA(0,-1,0);
+    initRMQ();
+  }
+  
+  //LCA-Query with O(1) time complexity
+  int lca(int u, int v) {
+    if(H[u] > H[v])
+      swap(u,v);
+    return E[queryRMQ(H[u],H[v])];
   }
   
 private:
-  void buildLCA(int v, int p = -1) {
-    parent[v][0] = p;
-    if(p + 1)
-      h[v] = h[p] + 1;
-    for(int i = 1; i < MAX_LOG; i++)
-      if(parent[v][i-1] + 1)
-	parent[v][i] = parent[parent[v][i-1]][i-1];
+
+  void buildLCA(int v, int p, int depth) {
+    H[v] = idx; E[idx] = v; L[idx++] = depth;
     for(il node : g[v]) {
       int u = node.first;
-      if(p - u)
-	buildLCA(u,v);
+      if(p - u) {
+	buildLCA(u,v,depth+1);
+	E[idx] = v; L[idx++] = depth;
+      }
     }
   }
-  
+    
   graph g;
-  int N, MAX_LOG;
-  vector<int> h;
-  vector<vector<int>> parent;
+  int N, idx;
 };
 
 
@@ -73,20 +84,21 @@ void dfs(int cur_node, int parent, ll distance, graph& g) {
 
 int main() {
 
-	while(cin >> n) {
-		if(n == 0)
+	memset(H,-1,sizeof(H)); memset(E,-1,sizeof(E));  memset(L,-1,sizeof(L));
+	memset(sp,0,sizeof(sp));
+  
+	while(cin >> N) {
+		if(N == 0)
 			break;
 
-		graph g(n,vector<il>()); 
-		sp.assign(n,0);
-		for(int i = 1; i < n; i++) {
+		graph g(N,vector<il>()); 
+		for(int i = 1; i < N; i++) {
 			ll a, l;
 			cin >> a >> l;
 			g[i].push_back(make_pair(a,l));
 			g[a].push_back(make_pair(i,l));
 		}		
 
-		
 		LCA l(g);
 		dfs(0,-1,0,g);
 	
