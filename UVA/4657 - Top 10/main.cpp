@@ -12,42 +12,38 @@ class RMQ {
 
 	public:
 		RMQ() {}
-		
-		void buildRMQ(vector<T> b) {
+	  
+		//RMQ preprocessing in O(n*log(n))
+		void buildRMQ(vector<T>& b) {
 		  a = b;
 		  int n = a.size();
-		  int k = floor(log(n)/log(2));
-		  layer_idx.push_back(0);
-		  rmq.push_back(vector<int>());
-		  for(int i = 0; i < n; i++)
-			rmq[0].push_back(i);
-
-			for(int i = 1; i <= k; i++) {
-				int s = pow(2,i); int m = (s-1)/2;
-				layer_idx.push_back(rmq.size());
-				for(int j = 0; j < s; j++) {
-					rmq.push_back(vector<int>());
-					for(int l = j; l+s-1 < n; l += s)
-						rmq[layer_idx[i]+j].push_back((a[access(l,l+m)] < a[access(l+m+1,l+s-1)] ? access(l,l+m) : access(l+m+1,l+s-1)));		
-				}
-			}
+		  int k = floor(log2(n)) + 1;
+		  rmq.assign(k,vector<int>(n));
+		  for(int i = 0, s = 1; s <= n; s*=2, i++) {
+		    //Store all minimum values of intervall [l,l+2^i) forall l \in {0..n-s}
+		    for(int l = 0; l + s <= n; l++) {
+		      if(i == 0) rmq[0][l] = l;
+		      else {
+			int r = l + s/2;
+			//Minimum in intervall [l,l+2^i) is min(min([l,l+2^{i-1})),min([l+2^{i-1},l+2^i)))
+			rmq[i][l] = (a[rmq[i-1][l]] <= a[rmq[i-1][r]] ? rmq[i-1][l] : rmq[i-1][r]);
+		      }
+		    }
+		  }
 		}
 
+		//Range Minimum Query in O(1)
+		//Return minimum value in intervall [i,j)
 		int query(int i, int j) {
-			int s = pow(2,floor(log(j-i+1)/log(2)));
-			return (a[access(i,i+s-1)] < a[access(j-(s-1),j)] ? access(i,i+s-1) : access(j-(s-1),j));
+		  j++;
+		  if(i >= j) return i;
+		  //k = max {k | k < j-i}
+		  int k = floor(log2(j-i)); j = j - (1 << k);
+		  //Minimum in [i,j) is min(min([i,i+2^k)),min([j-2^k,j)))
+		  return (a[rmq[k][i]] <= a[rmq[k][j]] ? rmq[k][i] : rmq[k][j]);
 		}
-
-	private:
-		int access(int i, int j) {
-			//j-i+1 = 2^n n € N
-			int k = j-i+1, layer = floor(log(k)/log(2)), off = i % max(k,1), idx = (i - off)/k;
-			return rmq[layer_idx[layer]+off][idx];
-		}
-
 
 		vector<vector<int>> rmq;
-		vector<int> layer_idx;
 		vector<T> a;
 
 };
