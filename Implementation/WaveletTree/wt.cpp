@@ -10,7 +10,7 @@ typedef pair<int,int> ii;
 /*
  * Class constructs a Wavelet-Tree over a sequence X for an integer alphabet sigma
  * The Wavelet-Tree supports rank and select operations for sequences over integer alphabets.
- * The rank-operation is implemented in O(log(|sigma|)) and the select-operation in O(log^2(|sigma|))
+ * The rank-operation is implemented in O(log(|sigma|)) and the select-operation in O(log(|sigma|)*log(|X|))
  * 
  * This Wavelet-Tree implementation uses one single bitvector B to store the whole tree topology.
  * For a sequence X over an alphabet sigma we have to allocate O(|X|log(|sigma|)) bits space to store the
@@ -49,7 +49,7 @@ public:
   
   /*
    * The select operation is implemented with rank and binary search
-   * => Time complexity O(log^2(|sigma|))
+   * => Time complexity O(log(|sigma|)*log(|X|))
    * @return i-th occurence of integer a in X
    */
   int select(int i, int a) {
