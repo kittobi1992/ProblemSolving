@@ -179,7 +179,7 @@ private:
   bitset<N> B;
   //Alphabet
   pair<int,int> sigma;
-  //Size of sequenze
+  //Size of sequence X
   int n;
   //Size of bitvector B
   int size;

@@ -12,11 +12,13 @@ public:
   typedef pair<int,int> rank;
   
   SuffixArray(string& s) : n(s.size()+1), s(s), sa(s.size()+1) {
-    s.push_back('$');
+    this->s = s + "$";
     memset(ra,0,sizeof(ra)); memset(temp_ra,0,sizeof(temp_ra)); memset(sa_idx,0,sizeof(sa_idx));
     memset(phi,0,sizeof(phi)); memset(lcp,0,sizeof(lcp)); memset(plcp,0,sizeof(plcp));
     for(int i = 0; i < sa.size(); i++)	{ sa[i] = i; sa_idx[i] = i; }
-    constructSA();
+    inducedSorting();
+    //constructSA();
+    computeLCP();
   }
   
   ii findPattern(string& p) {
@@ -49,10 +51,58 @@ public:
   
   void printSuffixArray() {
     for(int i = 0; i < n; i++)
-      cout << sa[i] << " " << s.substr(sa[i]) << endl;
+      cout << sa[i] << " " << (sa[i] < 10 ? " " : "") << s.substr(sa[i]) << endl;
   }
   
 private:
+  
+  void inducedSorting() {
+    //Use -1 as symbol for an empty entry
+    for(int i = 0; i < n; i++) sa[i] = -1;
+    int type[n]; memset(type,-1,sizeof(type));
+    vector<int> s_star;
+    vector<int> s_length(300,0), l_length(300,0), s_pos(300,0), l_pos(300,0);
+    
+    //Determine all L (type = 0) and S (type = 1) suffixes and precalculate datastructure for bucket borders
+    type[n-1] = 1;
+    for(int i = n-2; i >= 0; i--) {
+      if(s[i] > s[i+1]) { type[i] = 0; l_length[s[i]]++; }
+      else if(s[i] < s[i+1]) { type[i] = 1; s_length[s[i]]++; }
+      else { type[i] = type[i+1]; if(type[i]) s_length[s[i]]++; else l_length[s[i]]++; }
+    }    
+    //Determine all S* suffixes
+    for(int i = 1; i < n; i++) {
+      if(i > 0 && type[i-1] == 0 && type[i] == 1) { s_star.push_back(i);}
+    }
+    
+    //Determine bucket borders for L and S suffixes
+    int pos = 1;
+    for(char a = 'a'; a <= 'z'; a++) {
+      l_pos[a] = pos; pos += l_length[a] + s_length[a];
+      s_pos[a] = pos-1;
+    }
+    
+    //Sort S* suffixes (naive variant)
+    sort(s_star.begin(),s_star.end(),
+	 [&](const int i1, const int i2) { return s.substr(i1,n-i1).compare(s.substr(i2,n-i2)) < 0; });
+    
+    //Insert S* suffixes into SA-Array
+    vector<int> temp_pos(300,0);
+    for(int i = s_star.size()-1; i >= 0; i--) {
+      sa[s_pos[s[s_star[i]]]-temp_pos[s[s_star[i]]]++] = s_star[i];
+    }
+    
+    //Induce from left to right and insert all L suffixes
+    for(int i = 0; i < n; i++) {
+      if(sa[i] > 0 && type[sa[i]-1] == 0)
+	sa[l_pos[s[sa[i]-1]]++] = sa[i]-1;
+    }
+    //Induce from right to left and insert all S suffixes
+    for(int i = n-1; i >= 0; i--) {
+      if(sa[i] > 0 && type[sa[i]-1] == 1)
+	sa[s_pos[s[sa[i]-1]]--] = sa[i]-1;
+    }
+  }
   
   void constructSA() {
     vector<rank> ra_p(n);
@@ -72,8 +122,6 @@ private:
       for(int j = 0; j < n; j++) ra[j] = temp_ra[j];
       if(ra[sa[n-1]] == n-1) break;
     }
-    
-    computeLCP();
   }
   
   void computeLCP() {
@@ -103,6 +151,7 @@ int main() {
     string s; cin >> s;
     int n = s.size();
     SuffixArray sa(s);
+    //sa.printSuffixArray();
     cout << sa.longestRepeatedSubstring() << endl;
   }
   
