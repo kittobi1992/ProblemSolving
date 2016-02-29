@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 #include <iostream>
 
+#include "../Trie/trie.cpp"
+
 using namespace std;
 
 typedef pair<int,int> ii;
@@ -16,8 +18,8 @@ public:
     memset(ra,0,sizeof(ra)); memset(temp_ra,0,sizeof(temp_ra)); memset(sa_idx,0,sizeof(sa_idx));
     memset(phi,0,sizeof(phi)); memset(lcp,0,sizeof(lcp)); memset(plcp,0,sizeof(plcp));
     for(int i = 0; i < sa.size(); i++)	{ sa[i] = i; sa_idx[i] = i; }
-    inducedSorting();
-    computeLCP();
+    sa = inducedSorting(this->s);
+    //computeLCP();
   }
   
   int operator[](const int i) {
@@ -89,54 +91,86 @@ private:
   //Normally Induced Sorting has a running time of O(n), but in this variant the S* suffixes
   //are sorted with a naiv variant (Time complexity O(|S*|^2*log(|S*|)))
   //Therefore the running time depends on the amount of S* suffixes in the text.
-  void inducedSorting() {
+  vector<int> inducedSorting(string& T) {
     //Use -1 as symbol for an empty entry
-    for(int i = 0; i < n; i++) sa[i] = -1;
+    int n = T.size();
+    vector<int> sa(n,-1);
     int type[n]; memset(type,-1,sizeof(type));
-    vector<int> s_star;
+    vector<int> s_star, s_star_length;
     vector<int> s_length(300,0), l_length(300,0), s_pos(300,0), l_pos(300,0);
     
     //Determine all L (type = 0) and S (type = 1) suffixes and precalculate datastructure for bucket borders
     type[n-1] = 1;
     for(int i = n-2; i >= 0; i--) {
-      if(s[i] > s[i+1]) { type[i] = 0; l_length[s[i]]++; }
-      else if(s[i] < s[i+1]) { type[i] = 1; s_length[s[i]]++; }
-      else { type[i] = type[i+1]; if(type[i]) s_length[s[i]]++; else l_length[s[i]]++; }
+      if(T[i] > T[i+1]) { type[i] = 0; l_length[T[i]]++; }
+      else if(T[i] < T[i+1]) { type[i] = 1; s_length[T[i]]++; }
+      else { type[i] = type[i+1]; if(type[i]) s_length[T[i]]++; else l_length[T[i]]++; }
     }    
     //Determine all S* suffixes
+    int last_s_star = -1;
     for(int i = 1; i < n; i++) {
-      if(i > 0 && type[i-1] == 0 && type[i] == 1) { s_star.push_back(i);}
+      if(i > 0 && type[i-1] == 0 && type[i] == 1) { 
+	if(last_s_star != -1) { s_star.push_back(last_s_star); s_star_length.push_back(i-last_s_star+1); }
+	last_s_star = i;
+      }
     }
+    s_star.push_back(n-1); s_star_length.push_back(1);
     
     //Determine bucket borders for L and S suffixes
-    //ATTENTION: If the alphabet size is bigger than only [a,z] you have to adapt
-    //it in this for-loop.
     int pos = 1;
-    for(char a = 'a'; a <= 'z'; a++) {
+    for(char a = 'A'; a <= 'z'; a++) {
       l_pos[a] = pos; pos += l_length[a] + s_length[a];
       s_pos[a] = pos-1;
     }
     
     //Sort S* suffixes (naive variant)
-    sort(s_star.begin(),s_star.end(),
+    /*vector<T> star;
+    for(int i = 0; i < s_star.size(); i++) {
+      T sub_star;
+      for(int j = s_star[i]; j < s_star[i] + s_star_length[i]; j++)
+	sub_star.push_back(T[i]);
+      star.push_back(sub_star);
+    }
+    Trie trie(star);
+    vector<int> supersigns = trie.getSortedRanks();
+    bool is_unique = true; map<int,int> sign_count;
+    for(int i = 0; i < supersigns.size(); i++) {
+      sign_count[supersigns[i]]++;
+      if(sign_count[supersigns[i]] > 1) is_unique = false;
+    }
+    if(!is_unique) {
+      vector<int> super_sa = inducedSorting<vector<int>>(supersigns);
+      vector<int> temp_s_star(s_star.size());
+      for(int i = 0; i < s_star.size(); i++)
+	temp_s_star[i] = s_star[super_sa[i]];
+      swap(s_star,temp_s_star);
+    }
+    else {
+      vector<int> temp_s_star(s_star.size());
+      for(int i = 0; i < s_star.size(); i++)
+	temp_s_star[supersigns[i]] = s_star[i];
+      swap(s_star,temp_s_star);
+    }*/
+     sort(s_star.begin(),s_star.end(),
 	 [&](const int i1, const int i2) { return s.substr(i1,n-i1).compare(s.substr(i2,n-i2)) < 0; });
     
     //Insert S* suffixes into SA-Array
     vector<int> temp_pos(300,0);
     for(int i = s_star.size()-1; i >= 0; i--) {
-      sa[s_pos[s[s_star[i]]]-temp_pos[s[s_star[i]]]++] = s_star[i];
+      sa[s_pos[T[s_star[i]]]-temp_pos[T[s_star[i]]]++] = s_star[i];
     }
     
     //Induce from left to right and insert all L suffixes
     for(int i = 0; i < n; i++) {
       if(sa[i] > 0 && type[sa[i]-1] == 0)
-	sa[l_pos[s[sa[i]-1]]++] = sa[i]-1;
+	sa[l_pos[T[sa[i]-1]]++] = sa[i]-1;
     }
     //Induce from right to left and insert all S suffixes
     for(int i = n-1; i >= 0; i--) {
       if(sa[i] > 0 && type[sa[i]-1] == 1)
-	sa[s_pos[s[sa[i]-1]]--] = sa[i]-1;
+	sa[s_pos[T[sa[i]-1]]--] = sa[i]-1;
     }
+    return sa;
   }
   
   //Computes the Longest Common Prefix of all suffixes in s. Time Complexity O(n)
