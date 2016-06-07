@@ -7,6 +7,7 @@ typedef long long ll;
 #define N 50000
 vector<ll> primes;
 typedef pair<int,int> ii;
+ll smallest_divisor[N+1];
 
 //Finds all primes number between 0..N
 //Use this method for N < 10000000 to avoid memory access errors
@@ -43,14 +44,42 @@ vector<ii> factorize(ll n) {
   return fact;
 }
 
+//@Thanks to JBatzill: https://github.com/JBatzill/PCR/tree/master/number%20theory/factorization/smallest_prime_divisor
+//precalculates the smallest prime divisor for each 0..N
+//Running Time: O(n*log(log(n)))
+void precalcSmallestPrimeDivisor() {
+	smallest_divisor[0] = smallest_divisor[1] = 0;
+	for(ll i = 2; i <= N; i++) smallest_divisor[i] = (i % 2 == 0 ? 2 : i);
+	
+	for(ll i = 3; i * i <= N; i+=2) {
+		if(smallest_divisor[i] == i) {
+			for(ll n = i*i; n <= N; n += (i<<1)) {
+				if(smallest_divisor[n] == n) smallest_divisor[n] = i;
+			}
+		}
+	}
+}
+
+//@Thanks to JBatzill: https://github.com/JBatzill/PCR/tree/master/number%20theory/factorization/smallest_prime_divisor
+//Fast factorization of n (Precondition: n <= N)
+//Running Time: O(log(n))
+vector<ll> fastFactorize(int n) {
+	vector<ll> res;
+	while(n > 1) {
+		res.push_back(smallest_divisor[n]);
+		n /= smallest_divisor[n];
+	}
+	return res;
+}
+
 int main() {
-  primeSieve();
-  ll n = 10;
-  vector<ii> fact = factorize(n);
+  precalcSmallestPrimeDivisor();
+  ll n = 1052;
+  vector<ll> fact = fastFactorize(n);
   ll num = 1;
   for(int i = 0; i < fact.size(); i++) {
-    num *= pow(fact[i].first,fact[i].second);
-    cout << fact[i].first << "^" << fact[i].second << (i == fact.size()-1 ? " = " : " * ");
+    num *= fact[i];
+    cout << fact[i] << (i == fact.size()-1 ? " = " : " * ");
   }
   cout << num << (n == num ? " = " : " != ") << n << endl;
 }
