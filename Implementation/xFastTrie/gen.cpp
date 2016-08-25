@@ -8,8 +8,8 @@ using namespace std;
 
 int main() {
 
-	int n = 2000000;
-	int u = 3000000;
+	int n = 1000000;
+	int u = 1100000;
 	vector<bool> visited(u,false);
 
 	cout << n << " "<< u << endl;
