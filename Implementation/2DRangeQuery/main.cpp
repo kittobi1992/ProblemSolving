@@ -5,7 +5,8 @@ using namespace std;
 
 typedef pair<int,int> point;
 
-#define N 10
+#define N 1000000
+#define SEP "\n--------------------------------------"
 
 point data[N];
 int n; 
@@ -74,8 +75,11 @@ void rangeSearch1D(vector<point> &res, vector<point> &y, int y1, int y2) {
 }
 
 void rangeSearch2DRecursive(vector<point> &res, node *cur, int x1, int x2, int y1, int y2) {
+    if(!cur)
+      return;
+  
     //cur is split node
-    if(x1 <= cur->x && x2 > cur->x) {
+    if(x1 <= cur->x && x2 >= cur->x) {
       
 	if(cur->isLeaf()) {
 	  rangeSearch1D(res,cur->yRange,y1,y2);
@@ -130,37 +134,95 @@ void printTree(node *cur) {
   }
 }
 
-int main() {
+vector<point> naiveRangeSearch(int x1, int x2, int y1, int y2) {
+  point search_point = make_pair(x1,INT_MIN);
+  auto match = lower_bound(data,data+n,search_point);
+  vector<point> res;
+  while(match->first <= x2 && match != (data+n)) {
+      if(match->first >= x1 && match->first <= x2 && match->second >= y1 && match->second <= y2)
+	res.push_back(*match);
+      match++;
+  }
+  return res;
+}
+
+double diffclock(clock_t clock1,clock_t clock2)
+{
+    double diffticks=clock2-clock1;
+    double diffms=(diffticks)/(CLOCKS_PER_SEC/1000);
+    return diffms;
+}
+
+double rangeSearchTime = 0.0;
+double naiveRangeSearchTime = 0.0;
+
+bool verify(int x1, int x2, int y1, int y2) {
+  cout << "Query: ("<<x1<<","<<x2<<") x ("<<y1<<","<<y2<<")"<<endl; 
   
+  clock_t t0 = clock();
+  vector<point> res = rangeSearch2D(x1,x2,y1,y2);
+  double t1 = diffclock(t0,clock()); rangeSearchTime += t1;
+  cout << "Range Search Time = " << t1 << " ms" << endl;
+  
+  t0 = clock();
+  vector<point> naive_res = naiveRangeSearch(x1,x2,y1,y2);
+  t1 = diffclock(t0,clock()); naiveRangeSearchTime += t1;
+  cout << "Naive Range Search Time = " << t1 << " ms" << endl;
+  
+  cout << "Range Search 2D Result Size = " << res.size() << endl;
+  cout << "Naive Range Search 2D Result Size = " << naive_res.size() << endl;
+  if(naive_res.size() != res.size()) {
+    cout << "Sizes of result vectors didn't match!" << SEP << endl; return false; }
+  
+  sort(res.begin(),res.end());
+  auto cur_res = res.begin(); auto cur_n_res = naive_res.begin();
+  while(cur_res != res.end()) {
+    if(cur_res->first != cur_n_res->first || cur_res->second != cur_n_res->second) {
+	cout << "Mismatch: ("<<cur_res->first << "," << cur_res->second << ") != (" 
+	     << cur_n_res->first << "," << cur_n_res->second << ")" << SEP << endl;
+	return false;
+    }
+    cur_res++; cur_n_res++;
+  }
+  cout << "Verify-State = OK" << SEP << endl;
+  return true;
+}
+
+int main() {
+  ios::sync_with_stdio(false);
   memset(data,0,sizeof(point)*N);
   cin >> n;
   for(int i = 0; i < n; ++i)
     cin >> data[i].first >> data[i].second;
   
-  root = build2DRangeTree();
-  for(int i = 0; i < n; ++i)
-    cout << i << " -> " << data[i].first << " " << data[i].second << endl;
+  clock_t t0 = clock();
+  sort(data,data+n);
+  cout << "Sorting Input Points = " << diffclock(t0,clock()) << " ms" << endl;
   
-  printTree(root);
+  t0 = clock();
+  root = build2DRangeTree();
+  cout << "Build 2D Range Datastructure = " << diffclock(t0,clock()) << " ms" << endl;
+  
+  /*for(int i = 0; i < n; ++i)
+    cout << i << " -> " << data[i].first << " " << data[i].second << endl;*/
+  
+  //printTree(root);
   
   //TODO: Verification with naive algorithm on big data sets
-  vector<point> res = rangeSearch2D(3,9,10,15);
-  for(int i = 0; i < res.size(); ++i)
-    cout << i << ": ("<< res[i].first << " " << res[i].second << ")"<< endl;
-  cout << "-------------" << endl;
-  res = rangeSearch2D(0,20,0,20);
-  for(int i = 0; i < res.size(); ++i)
-    cout << i << ": ("<< res[i].first << " " << res[i].second << ")"<< endl;
-  cout << "-------------" << endl;
-  res = rangeSearch2D(15,20,0,20);
-  for(int i = 0; i < res.size(); ++i)
-    cout << i << ": ("<< res[i].first << " " << res[i].second << ")"<< endl;
+  int x1 = 0, x2 = 10000, y1 = 0, y2 = 10000;
+  int q = 2500;
+  /*verify(2500,7500,2500,7500);
+  verify(2500,7500,0,10);
+  verify(0,2500,0,2500);*/
+  for(int i = 0; i < q; ++i) {
+    cout << "Query " << (i+1) << "/" << q << endl;
+    int xs = x1 + (rand() % (x2-x1)), xe = xs + (rand() % (x2-x1-xs));
+    int ys = y1 + (rand() % (y2-y1)), ye = ys + (rand() % (y2-y1-ys));
+    if(!verify(xs,xe,ys,ye)) break;
+  }
   
-  //TODO: Memory access error for this test case
-  /*cout << "-------------" << endl;
-  res = rangeSearch2D(20,20,0,20);
-  for(int i = 0; i < res.size(); ++i)
-    cout << i << ": ("<< res[i].first << " " << res[i].second << ")"<< endl;*/
+  cout << "Total Range Search Time = " << rangeSearchTime << " ms => " << (rangeSearchTime/q) << " ms per Query" << endl;
+  cout << "Total Naive Range Search Time = " << naiveRangeSearchTime << " ms => " << (naiveRangeSearchTime/q) << " ms per Query" << endl;
   
   return 0;
 }
