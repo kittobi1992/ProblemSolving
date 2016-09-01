@@ -3,13 +3,13 @@
 using namespace std;
 
 int main() {
-  
+    ios::sync_with_stdio(false);
   int x1, x2, y1, y2;
   x1 = 0;
-  x2 = 100000;
+  x2 = 10000000;
   y1 = 0;
-  y2 = 100000;
-  int n = 1000000;
+  y2 = 10000000;
+  int n = 2000;
   cout << n << endl;
   for(int i = 0; i < n; ++i) {
     int x = x1 + (rand() % (x2-x1+1));

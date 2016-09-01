@@ -5,7 +5,7 @@ using namespace std;
 
 typedef pair<int,int> point;
 
-#define N 1000000
+#define N 2000000
 #define SEP "\n--------------------------------------"
 
 point data[N];
@@ -123,7 +123,7 @@ vector<point> rangeSearch2D(int x1, int x2, int y1, int y2) {
 
 
 node * build2DRangeTree() {
-   sort(data,data+n);
+   //sort(data,data+n);
    return build2DRangeTreeRecursive(0,n-1);
 }
 
@@ -210,8 +210,8 @@ int main() {
   
   //printTree(root);
   
-  int x1 = 0, x2 = 10000, y1 = 0, y2 = 10000;
-  int q = 1;
+  int x1 = 0, x2 = 10000000, y1 = 0, y2 = 10000000;
+  int q = 100;
   /*verify(2500,7500,2500,7500);
   verify(2500,7500,0,10);
   verify(0,2500,0,2500);*/
