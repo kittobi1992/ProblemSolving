@@ -14,16 +14,15 @@ int n;
 struct node {
   int x;
   node *left, *right;
-  vector<point> yRange;
+  point *yRange; int size;
   
-  node(point &p) : x(p.first), left(nullptr), right(nullptr), yRange() { }
-  
+  node(point &p, int size) : x(p.first), left(nullptr), right(nullptr), size(size) { yRange = new point[size]; }
   void printNode() {
     cout << "Node: " << x << ", Left: " << (left ? left->x : -1) << ", Right: "
 	 << (right ? right->x : -1) << endl;
     cout << "yRange: ";
-    for(int i = 0; i < yRange.size(); ++i)
-      cout << "(" << yRange[i].first << ","<<yRange[i].second<<")" << ((i == yRange.size()-1) ? "" : " ");
+    for(int i = 0; i < size; ++i)
+      cout << "(" << yRange[i].first << ","<<yRange[i].second<<")" << ((i == size-1) ? "" : " ");
     cout << endl;
     cout << "-------------------" << endl;
   }
@@ -36,39 +35,41 @@ struct node {
 
 node *root;
 
-node * createNode(point &p, bool isLeaf = false) {
-  node *no = new node(p);
+node * createNode(point &p, int size, bool isLeaf = false) {
+  node *no = new node(p,size);
   if(isLeaf)
-    no->yRange.push_back({p.second,p.first});
+    no->yRange[0] = make_pair(p.second,p.first);
   return no;
 }
 
 
 node * build2DRangeTreeRecursive(int i, int j) {
   if(j-i < 0) return nullptr;
-  else if(j - i == 0) { node *cur = createNode(data[i],true); return cur; }
+  else if(j - i == 0) { node *cur = createNode(data[i],1,true); return cur; }
 
   int m = (i+j)/2;
-  node *cur = createNode(data[m]);
+  node *cur = createNode(data[m],j-i+1);
   cur->left = build2DRangeTreeRecursive(i,m);
   cur->right = build2DRangeTreeRecursive(m+1,j);
   
-  vector<point> dummy;
-  if(cur->left && cur->right)
-    merge(cur->left->yRange.begin(),cur->left->yRange.end(),cur->right->yRange.begin(),
-	  cur->right->yRange.end(),back_inserter(cur->yRange));
+  if(cur->left && cur->right) {
+    merge(cur->left->yRange,cur->left->yRange+cur->left->size,
+	  cur->right->yRange,cur->right->yRange+cur->right->size,
+	  cur->yRange);
+  }
   else if(cur->left && !cur->right)
-    cur->yRange.insert(cur->yRange.end(),cur->left->yRange.begin(),cur->left->yRange.end());
+    copy(cur->left->yRange,cur->left->yRange+cur->left->size,cur->yRange);
   else if(!cur->left && cur->right)
-    cur->yRange.insert(cur->yRange.end(),cur->right->yRange.begin(),cur->right->yRange.end());
+    copy(cur->right->yRange,cur->right->yRange+cur->right->size,cur->yRange);
   
   return cur;
 }
 
-void rangeSearch1D(vector<point> &res, vector<point> &y, int y1, int y2) {
+void rangeSearch1D(vector<point> &res, node *no, int y1, int y2) {
   point search_point = make_pair(y1,0);
-  auto cur = lower_bound(y.begin(),y.end(),search_point);
-  while(cur->first <= y2 && cur != y.end()) {
+  auto y_end = no->yRange+no->size;
+  auto cur = lower_bound(no->yRange,y_end,search_point);
+  while(cur->first <= y2 && cur != y_end) {
     res.emplace_back(cur->second,cur->first);
     cur++;
   }
@@ -82,30 +83,30 @@ void rangeSearch2DRecursive(vector<point> &res, node *cur, int x1, int x2, int y
     if(x1 <= cur->x && x2 >= cur->x) {
       
 	if(cur->isLeaf()) {
-	  rangeSearch1D(res,cur->yRange,y1,y2);
+	  rangeSearch1D(res,cur,y1,y2);
 	}
 	else {
 	  //Inspect left subtree
 	  node *v = cur->left;
 	  while(!v->isLeaf() && v) {
 	    if(x1 <= v->x) {
-	      rangeSearch1D(res,v->right->yRange,y1,y2);
+	      rangeSearch1D(res,v->right,y1,y2);
 	      v = v->left;
 	    }
 	    else v = v->right;
 	  }
-	  if(v && x1 <= v->x) rangeSearch1D(res,v->yRange,y1,y2);
+	  if(v && x1 <= v->x) rangeSearch1D(res,v,y1,y2);
 	  
 	  //Inspect right subtree
 	  v = cur->right;
 	  while(!v->isLeaf() && v) {
 	    if(x2 >= v->x) {
-	      rangeSearch1D(res,v->left->yRange,y1,y2);
+	      rangeSearch1D(res,v->left,y1,y2);
 	      v = v->right;
 	    }
 	    else v = v->left;
 	  }
-	  if(v && x2 >= v->x) rangeSearch1D(res,v->yRange,y1,y2);  
+	  if(v && x2 >= v->x) rangeSearch1D(res,v,y1,y2);  
 	}
 	
     }
@@ -137,12 +138,13 @@ void printTree(node *cur) {
 vector<point> naiveRangeSearch(int x1, int x2, int y1, int y2) {
   point search_point = make_pair(x1,INT_MIN);
   auto match = lower_bound(data,data+n,search_point);
-  vector<point> res;
+  vector<point> res; int i = 0;
   while(match->first <= x2 && match != (data+n)) {
       if(match->first >= x1 && match->first <= x2 && match->second >= y1 && match->second <= y2)
 	res.push_back(*match);
-      match++;
+      match++; i++;
   }
+  cout << "Points in X-Range = " << i << endl;
   return res;
 }
 
@@ -208,9 +210,8 @@ int main() {
   
   //printTree(root);
   
-  //TODO: Verification with naive algorithm on big data sets
   int x1 = 0, x2 = 10000, y1 = 0, y2 = 10000;
-  int q = 2500;
+  int q = 1;
   /*verify(2500,7500,2500,7500);
   verify(2500,7500,0,10);
   verify(0,2500,0,2500);*/
