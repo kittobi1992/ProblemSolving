@@ -108,12 +108,21 @@ int main() {
         pt(min(x3, x4), min(y3, y4)),
         pt(max(x3, x4), max(y3, y4))
     );
+	
+	vector<ll> xDiff, yDiff;
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			pt translation = f1.points[i] - f2.points[j];
+			xDiff.push_back(translation.x);
+			yDiff.push_back(translation.y);
+		}
+	}
     
     ll bestIntersection = intersect(f1, f2);
     pt bestTranslation(0, 0);
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            pt translation = f1.points[i] - f2.points[j];
+    for (int i = 0; i < (int)xDiff.size(); i++) {
+        for (int j = 0; j < (int)yDiff.size(); j++) {
+            pt translation = pt(xDiff[i], yDiff[j]);
             frame translated  = translate(f2, translation);
             ll intersection = intersect(f1, translated);
             if (intersection > bestIntersection) {
@@ -121,7 +130,7 @@ int main() {
                 bestTranslation = translation;
             }
             
-            translation = f2.points[i] - f1.points[j];
+            translation = pt(-translation.x, -translation.y);
             translated  = translate(f2, translation);
             intersection = intersect(f1, translated);
             if (intersection > bestIntersection) {
