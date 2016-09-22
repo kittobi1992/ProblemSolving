@@ -2,32 +2,29 @@
 
 using namespace std;
 
+#define INVALID INT_MAX/3
 
 struct node {
     int id;
-    int t, b, u;
+    int t, b;
     node *left, *right;
     
-    node(int id) : id(id), u(0), left(nullptr), right(nullptr) {}
+    node(int id) : id(id), left(nullptr), right(nullptr) {}
     
     bool is_leaf() {
         return !(left && right);
     }
     
-    int balls() {
-        return b + u;
-    }
     
     void printNode(int d) {
         for(int i = 0; i < d; ++i) cout << " ";
-        cout << "ID: " << id << ", Twiggs: " << t << ", Balls: " << b << ", Add/Remove: " << u << endl; 
+        cout << "ID: " << id << ", Twiggs: " << t << ", Balls: " << b << endl; 
     }
     
 };
 
 string bp; int pos; int id;
 node * root;
-int res;
 
 void printTree(node *cur, int d) {
     if(cur) {
@@ -57,72 +54,39 @@ node * buildTree() {
 }
 
 
-void applyBallChange(node *left, node *right, int u) {
-    int tmp_u = u;
-    int b1 = left->b;
-    int b2 = right->b;
-    int N = abs(b1-b2);
-    while(tmp_u != 0) {
-        if(tmp_u < 0) {
-            if(b1 > b2) { b1 += max(-N,tmp_u); u += min(N,-tmp_u); }
-            else if(b2 < b1) { b2 += max(-N,tmp_u); tmp_u += min(N,-tmp_u); }
-            else { b1 += tmp_u/2 - (tmp_u % 2 == 1); b2 += tmp_u/2; tmp_u = 0; }
-        } else if(tmp_u > 0) {
-            if(b1 < b2) { b1 += min(N,tmp_u); u -= min(N,tmp_u); }
-            else if(b1 > b2) { b2 += min(N,tmp_u); u -= min(N,tmp_u); }
-            else { b1 -= tmp_u/2 + (tmp_u % 2 == 1); b2 -= tmp_u/2; tmp_u = 0;  }
-        }
-    }
-    left->b = b1;
-    right->b = b2;
-}
 
-void dfs(node *cur) {
-    if(cur->is_leaf()) return;
-    
-    applyBallChange(cur->left,cur->right,cur->u);
-    cur->printNode(0);
-    cur->left->printNode(2);
-    cur->right->printNode(2);
-    int b = cur->b;
-    int t1 = cur->left->t, b1 = cur->left->b, f1 = t1-b1;
-    int t2 = cur->right->t, b2 = cur->right->b, f2 = t2-b2;
-    int N = abs(b1-b2);
-    
-    if(N > 1) {
-        int u_tmp = N/2;
-        if(b1 > b2) {
-            if(f2 < u_tmp) { res = -1; return; }
-            cur->left->u = -u_tmp;
-            cur->right->u = u_tmp;
-            res += u_tmp;
-        } else {
-            if(f1 < u_tmp) { res = -1; return; }
-            cur->left->u = u_tmp;
-            cur->right->u = -u_tmp;
-            res += u_tmp;
-        }
+int dfs(node *cur, int N) {
+    if(cur->is_leaf()) { 
+        if(N > 1) return INVALID;
+        return cur->b == 1 && N == 0;
     }
     
-    dfs(cur->left);
-    if(res == -1) return;
-    dfs(cur->right);
-    if(res == -1) return;
+    if(N % 2 == 0) {
+        int res1 = dfs(cur->left,N/2), res2 = dfs(cur->right,N/2);
+        if(res1+res2 >= INVALID) return INVALID;
+        return res1 + res2;
+    }
+    else {
+        int res1 = dfs(cur->left,N/2), res2 = dfs(cur->right,N/2+1);
+        int res3 = dfs(cur->left,N/2+1), res4 = dfs(cur->right,N/2);
+        if(res1 + res2 >= INVALID && res3 + res4 >= INVALID) return INVALID;
+        return min(res1+res2,res3+res4);
+    }
+    
 }
 
 int main() {
      
     while(cin >> bp) {
-        pos = 1; id = 0; res = 0;
+        pos = 1; id = 0;
         root = buildTree();
         
-        printTree(root,0);
-        cout << "----------------" << endl;
+        //printTree(root,0);
         
-        dfs(root);
+        int res = dfs(root, root->b);
         
-        if(res >= 0) cout << res << endl;
-        else cout << "impossible" << endl;
+        if(res >= INVALID) cout << "impossible" << endl;
+        else cout << res << endl;
     }
     
 	return 0;
