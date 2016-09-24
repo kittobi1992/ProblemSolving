@@ -4,7 +4,7 @@ using namespace std;
 
 typedef long long ll;
 
-#define N 50000
+#define N 10000000
 vector<ll> primes;
 typedef pair<int,int> ii;
 ll smallest_divisor[N+1];
