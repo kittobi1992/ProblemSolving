@@ -83,15 +83,14 @@ bool adjustPath(vector<int>& path, ll distance) {
         int u = path[i], v = path[i+1];
         if(var[u][v] && first_zero_idx == -1) {
             first_zero_idx = i;
-        } else if(var[u][v] && w[u][v] == 0) {
-            w[u][v] = 1; w[v][u] = 1;
-        }
+        } 
         cur_distance += w[u][v];
     }
+    
     if(first_zero_idx != -1) {
         int u = path[first_zero_idx], v = path[first_zero_idx+1];
         ll old_weight = w[u][v];
-        w[u][v] = std::max(L - cur_distance,max(1LL,w[u][v])); w[v][u] = max(L - cur_distance,max(1LL,w[v][u]));
+        w[u][v] = std::max(L - cur_distance+w[u][v],w[u][v]); w[v][u] = max(L - cur_distance+w[v][u],w[v][u]);
         cur_distance += (w[u][v]-old_weight);
     }
     return cur_distance >= L;
@@ -108,6 +107,17 @@ int main() {
         w[v][u] = weight;
         if(w[u][v] == 0) { var[u][v] = true; var[v][u] = true; }
     }
+    
+    for(int u = 0; u < g.size(); ++u) {
+        for(int i = 0; i < g[u].size(); ++i) {
+            int v = g[u][i];
+            if(w[u][v] == 0) {
+                w[u][v] = 1; w[v][u] = 1;
+            }
+        }
+    }
+    
+    
     
     Dijkstra<ll> dijkstra(g);
     bool found = false;
@@ -130,9 +140,6 @@ int main() {
     for(int u = 0; u < g.size(); ++u) {
         for(int i = 0; i < g[u].size(); ++i) {
             int v = g[u][i];
-            if(w[u][v] == 0) {
-                w[u][v] = MAXL; w[v][u] = MAXL;
-            }
             if(u < v) {
                 cout << u << " " << v << " " << w[u][v] << endl;
             }
