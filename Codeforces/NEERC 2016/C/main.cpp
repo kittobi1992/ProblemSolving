@@ -6,82 +6,71 @@ using namespace std;
 typedef long long ll;
 
 struct store {
-    int idx;
+    int c;
     ll k, p;
 };
 
 typedef vector<vector<int>> graph;
-typedef vector<vector<store>> stores;
+#define N 5000
 
-ll thres = 1;
-vector<ll> vis;
-graph g; stores s;
+graph g;
+vector<store> stores;
+int d[N];
 
-using PQ = priority_queue<pair<ll,ll>,vector<pair<ll,ll>>,greater<pair<ll,ll>>>;
-
-ll bfs(int c, ll r, ll a) {
+void bfs(int c) {
+    memset(d,-1,sizeof(int)*N);
     queue<int> q;
     q.push(c);
-    vis[c] = thres;
-    ll dist = -1;
-    ll cur_dist = 0;
+    d[c] = 0;
+    ll cur_dist = 1;
     queue<int> new_q;
-    PQ pq;
-    ll sum_r = 0, sum_p = 0;
     while(!q.empty()) {
         int u = q.front(); q.pop();
         
-        for(int i = 0; i < s[u].size(); ++i) {
-            pq.push(make_pair(s[u][i].p,s[u][i].k));
-            if(sum_r < r) {
-                int shovels = min(r-sum_r,s[u][i].k);
-                sum_r += s[u][i].k;
-                sum_p += shovels*s[u][i].p;
-            }
-        }
-        
         for(int i = 0; i < g[u].size(); ++i) {
             int v = g[u][i];
-            if(vis[v] < thres) {
-                vis[v] = thres;
+            if(d[v] == -1) {
+                d[v] = cur_dist;
                 new_q.push(v);
             }
         }
         
         if(q.empty()) {
-            if(sum_r == r && sum_p <= a) {
-                dist = cur_dist;
-                break;
-            }
-            
-            if(sum_r >= r) {
-                PQ old_pq(pq);
-                sum_r = 0;
-                sum_p = 0;
-                while(!pq.empty()) {
-                    ll k = pq.top().second; ll p = pq.top().first; pq.pop();
-                    ll shovels = min(r-sum_r,k);
-                    sum_r += shovels;
-                    sum_p += shovels*p;
-                    if(sum_r >= r) break;
-                }
-                swap(pq,old_pq);
-                if(sum_r >= r && sum_p <= a) dist = cur_dist;
-                else swap(q,new_q);
-            }
-            else swap(q,new_q);
+            swap(q,new_q);
             cur_dist++;
         }
     }
-        
-    return dist;
+}
+
+bool check(int dist, ll r, ll a) {
+    ll sum_r = 0, sum_p = 0;
+    for(int i = 0; i < stores.size(); ++i) {
+        int c = stores[i].c;
+        if(d[c] <= dist && d[c] != -1) {
+            int shovels = min(r-sum_r,stores[i].k);
+            sum_r += shovels;
+            sum_p += shovels*stores[i].p;
+            if(sum_r == r && sum_p <= a) return true;
+        }
+    }
+    return sum_r == r && sum_p <= a;
+}
+
+ll search(ll p, ll a) {
+    if(!check(N+1,p,a)) return -1;
+    int l = 0; int r = N+1;
+    while(l < r) {
+        int m = (l+r)/2;
+        if(check(m,p,a)) r = m;
+        else l = m+1;
+    }
+    return l;
 }
 
 int main() {
   
     int n,m; cin >> n >> m;
     g.assign(n, vector<int>());
-    vis.assign(n,0);
     for(int i = 0; i < m; ++i) {
         int u, v; cin >> u >> v;
         u--; v--;
@@ -89,22 +78,23 @@ int main() {
         g[v].push_back(u);
     }
     
-    s.assign(n,vector<store>());
     int w; cin >> w;
     for(int i = 0; i < w; ++i) {
-        int c; store st; cin >> c >> st.k >> st.p;
-        st.idx = w;
-        c--;
-        s[c].push_back(st);
+        int c; store st; cin >> st.c >> st.k >> st.p;
+        st.c--;
+        stores.push_back(st);
     }
+    sort(stores.begin(),stores.end(),[&](const store& s1, const store& s2) {
+        return s1.p < s2.p;
+    });
     
     int q; cin >> q;
     for(int i = 0; i < q; ++i) {
         int c; ll r, a; cin >> c >> r >> a;
         c--;
-        ll min_dist = bfs(c,r,a);
+        bfs(c);
+        ll min_dist = search(r,a);
         cout << min_dist << endl;
-        thres++;
     }
     
     return 0;
