@@ -4,6 +4,9 @@
 
 using namespace std;
 
+
+//TODO(theuer): KILL this code. It is the most ugly EdmondKarp-Code I've ever seen. What the hell did I do..... 
+
 struct edge {
 	int v, flow, capacity;
 	int bIndex; //backwardEdgeIndex
