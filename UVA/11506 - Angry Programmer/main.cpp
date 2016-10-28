@@ -3,120 +3,58 @@
 using namespace std;
 
 
+#define INF INT_MAX
+#define MAXV 102
 
-int M, W;
+typedef vector<vector<int>> graph;
 
-struct edge {
-    int b, v, flow, capacity;
-    int bIndex; //backwardEdgeIndex
-    
-    int residualCapacity() {
-        return capacity - flow;
-    }
-    
-};
+int res[MAXV][MAXV];
+int N, M, W, s, t;
+graph g;
+vector<int> parent;
 
-class MaxFlow {
-    
-public:
-    MaxFlow(int nodes) { 
-        n = nodes; 
-        e.assign(n,vector<edge>());
-    }
-    
+void initalize() {
+    memset(res,0,sizeof res);
+    g.assign(N,vector<int>());
+    parent.assign(N,-1);
+    iota(parent.begin(),parent.end(),0);
+}
 
-    void addEdge(int u, int v, int capacity) {
-        edge e1, e2;
-        e1.v = v; e1.flow = 0; e1.capacity = capacity;
-        e2.v = u; e2.flow = 0; e2.capacity = 0;
-        e1.bIndex = e[v].size();	
-        e2.bIndex = e[u].size();
-        e[u].push_back(e1);
-        e[v].push_back(e2);
-    }
-    
-    
-    int maxFlow(int s, int t) {
-        int mf = 0;
-        
-        while(true) {
-            pair<vector<int>,vector<int>> bfs = findPath(s,t);
-            vector<int> path = bfs.first;
-            vector<int> eIndex = bfs.second;
-            if(path[t] == -1) {
-                break;
-            }
-            mf += increaseFlowAlongPath(t,path,eIndex);
-        }
-        
-        
-        return mf;
-    }
-    
-    void printGraph() {
-        for(int i = 0; i < n; ++i) {
-            cout << "Node " << i << ": ";
-            for(int j = 0; j < e[i].size(); ++j) {
-                if(e[i][j].capacity > 0) cout << e[i][j].v << " ";
-            }
-            cout << endl;
-        }
-    }
-    
-    
-private:
-    
-    int increaseFlowAlongPath(int t, vector<int>& path, vector<int>& eIndex) {
-        int flow = flowAlongPath(t,path,eIndex);
-        int cur = t;
-        while(path[cur] != -1) {
-            e[path[cur]][eIndex[cur]].flow += flow;
-            e[cur][e[path[cur]][eIndex[cur]].bIndex].flow -= flow;
-            cur = path[cur];
-        }
-        return flow;
-    }
-    
-    int flowAlongPath(int t, vector<int>& path, vector<int>& eIndex) {
-        int flow = INT_MAX;
-        int cur = t;
-        while(path[cur] != -1) {
-            int rc = e[path[cur]][eIndex[cur]].residualCapacity();
-            flow = min(flow,rc);
-            cur = path[cur];
-        }
-        return flow;
-    }
-    
-    pair<vector<int>,vector<int>> findPath(int s, int t) {
-        vector<int> parent(n,-1);
-        vector<int> eIndex(n);
-        vector<bool> in_queue(n,false);
-        queue<int> q;
-        q.push(s);
-        in_queue[s] = true;
-        while(!q.empty()) {
-            int cur = q.front(); q.pop();
-            if(cur == t)
-                break;
-            for(int i = 0; i < e[cur].size(); i++) {
-                int v = e[cur][i].v;
-                int rc = e[cur][i].residualCapacity();
-                if(rc > 0 && !in_queue[v]) {
-                    parent[v] = cur;
-                    eIndex[v] = i;
-                    q.push(v);
-                    in_queue[v] = true;
-                }
+bool bfs() {
+    vector<bool> vis(N,false);
+    queue<int> q;
+    q.push(s); vis[s] = true; parent[s] = s;
+    while(!q.empty()) {
+        int u = q.front(); q.pop();
+        if(u == t) return true;
+        for(int i = 0; i < g[u].size(); ++i) {
+            int v = g[u][i];
+            if(res[u][v] && !vis[v]) {
+                q.push(v); vis[v] = true; parent[v] = u;
             }
         }
-        return make_pair(parent,eIndex);
     }
-    
-    int n;
-    vector<vector<edge>> e;
-    
-};
+    return false;
+}
+
+int augment(int v, int minFlow) {
+    if(v == s) return minFlow;
+    else {
+        int f = augment(parent[v],min(minFlow,res[parent[v]][v]));
+        res[parent[v]][v] -= f;
+        res[v][parent[v]] += f;
+        return f;
+    }
+}
+
+int maxFlow() {
+    int mf = 0;
+    while(bfs()) {
+        int f = augment(t,INF);
+        mf += f;
+    }
+    return mf;
+}
 
 
 
@@ -125,11 +63,16 @@ int main() {
     while(cin >> M >> W) {
         if(M == 0 && W == 0) break;
         
-        MaxFlow flow(2*M-2);
-        int s = 0, t = 2*M-3;
+        N = 2*M-2;
+        s = 0; t = 2*M-3;
+        initalize();
+        
         for(int i = 0; i < M-2; ++i) {
             int id, c; cin >> id >> c; id--;
-            flow.addEdge(2*id-1,2*id,c);
+            int u = 2*id-1, v = 2*id;
+            g[u].push_back(v);
+            g[v].push_back(u);
+            res[u][v] = c;
         }
         
         for(int i = 0; i < W; ++i) {
@@ -145,11 +88,15 @@ int main() {
             else if(v == M-1) { v1 = u2 = 2*M-3; }
             else { v1 = 2*v-1; u2 = 2*v; }
             
-            flow.addEdge(u1,v1,c);
-            flow.addEdge(u2,v2,c);
+            g[u1].push_back(v1);
+            g[v1].push_back(u1);
+            g[u2].push_back(v2);
+            g[v2].push_back(u2);
+            res[u1][v1] = c;
+            res[u2][v2] = c;
         }
-        //flow.printGraph();
-        cout << flow.maxFlow(s,t) << endl;
+        
+        cout << maxFlow() << endl;
         
     }
     
