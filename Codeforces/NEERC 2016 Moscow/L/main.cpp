@@ -3,13 +3,17 @@
 using namespace std;
 
 #define INF INT_MAX
+#define NMAX 200002
+
+double p[NMAX];
+bool is_plus[NMAX];
+int t[NMAX];
+int num_sub[NMAX];
+
 
 int main() {
-    ios::sync_with_stdio(false);
 
     int N; cin >> N;
-    vector<int> t(2*N), num_sub(2*N,0);
-    vector<bool> is_plus(2*N,false);
     int cur_num_sub = 0;
     for(int i = 0; i < 2*N; ++i) {
         char c; cin >> c >> t[i];
@@ -24,7 +28,7 @@ int main() {
         }
     }
     
-    vector<double> p(2*N,0.0);
+    p[2*N-1] = 0.0;
     for(int i = 2*N-2; i >= 0; --i) {
         if(is_plus[i]) {
             p[i] = p[i+1] + (t[i+1] - t[i]);
@@ -34,9 +38,9 @@ int main() {
         }
     }
     
-    
+    cout << setprecision(10) << fixed;
     for(int i = 0; i < 2*N; ++i) {
-        if(is_plus[i] > 0) cout << fixed << setprecision(10) << p[i] << endl;
+        if(is_plus[i] > 0) cout << p[i] << endl;
     }
     
     return 0;
