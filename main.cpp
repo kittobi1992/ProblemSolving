@@ -2,10 +2,10 @@
 
 using namespace std;
 
-ifstream fin("f.in");
-ofstream fout("f.out");
 
 int main() {
-  
+//     freopen("f.in", "r",stdin);
+//     freopen("f.out", "w",stdout);
+    
 	return 0;
 }
