@@ -193,6 +193,18 @@ int main() {
   WaveletTree wt(make_pair(0,7),X);
   wt.print();
   cout << wt.rank(11,6) << endl;
+  cout << wt.rank(7,3) << endl;
+  cout << wt.rank(3,3) << endl;
+  cout << wt.select(1,1) << ": " << X[wt.select(1,1)] << endl;
+  cout << wt.select(1,3) << ": " << X[wt.select(1,3)] << endl;
+  cout << wt.select(1,5) << ": " << X[wt.select(1,5)] << endl;
+  cout << wt.select(1,2) << ": " << X[wt.select(1,2)] << endl;
   cout << wt.select(2,3) << ": " << X[wt.select(2,3)] << endl;
+  cout << wt.select(1,7) << ": " << X[wt.select(1,7)] << endl;
+  cout << wt.select(2,1) << ": " << X[wt.select(2,1)] << endl;
+  cout << wt.select(1,0) << ": " << X[wt.select(1,0)] << endl;
+  cout << wt.select(1,4) << ": " << X[wt.select(1,4)] << endl;
+  cout << wt.select(2,7) << ": " << X[wt.select(2,7)] << endl;
+  cout << wt.select(1,6) << ": " << X[wt.select(1,6)] << endl;
   return 0;
 }
