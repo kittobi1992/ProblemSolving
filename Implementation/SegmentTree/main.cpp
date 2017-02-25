@@ -30,6 +30,10 @@ public:
         return query_rec(0,0,N-1,i,j);
     }
     
+    void update(const size_t idx, const seq_type val) {
+        update_rec(idx,val,0,0,N-1);
+    }
+    
 private:
     
     
@@ -50,6 +54,21 @@ private:
             tree_type m_right = query_rec(2*pos+2,m+1,cur_j,qry_i,qry_j);
             return m_right;
         }
+    }
+    
+    tree_type update_rec(const size_t idx, const seq_type val, const size_t pos, const size_t i, const size_t j) {
+        if(i > idx || j < idx) return seg_tree[pos];
+        else if(i == j) {
+            seq[idx] = val; seq_tree[pos] = B(i,seq);
+            return seq_tree[pos];
+        }
+        
+        size_t m = (i+j)/2;
+        tree_type m_left = update_rec(idx,val,2*pos+1,i,m);
+        tree_type m_right = update_rec(idx,val,2*pos+2,m+1,j);
+        seg_tree[pos] = A(m_left,m_right,seq);
+        
+        return seg_tree[pos];
     }
     
     tree_type buildSegmentTree(const size_t pos, const size_t i, const size_t j) {
