@@ -8,7 +8,7 @@ using namespace std;
 #define INVALID_WEIGHT INT_MAX/2
 #define FOREACH(G, u, v) for (Node v : G[u])
 #define FOR(G, u) for (int i = 0; i < G[u].size(); ++i)
-#define NODES(u, N) for (Node u = 0; u < n; ++u)
+#define NODES(u, N) for (Node u = 0; u < N; ++u)
 
 typedef int Node;
 typedef int Weight;
@@ -64,6 +64,19 @@ void printGraph() {
                 cout << "(" << w[u][i] << ")";
             }
             cout << " ";
+        }
+        cout << endl;
+    }
+}
+
+template<bool one_indexed = true,
+         typename type = Node>
+void printGraph(const Graph<type>& G) {
+    cout << "N = " << G.size() << endl;
+    NODES(u, G.size()) {
+        cout << "Node " << (one_indexed ? (u+1) : u) << ": ";
+        FOREACH(G, u, v) {
+            cout << (one_indexed ? (v+1) : v) << " ";
         }
         cout << endl;
     }

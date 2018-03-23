@@ -110,6 +110,7 @@ vector<int> minimumCut(Node s, Node t) {
 }
 
 int main() {
+    // Read weighted directed graph (1-indexed)
     readGraph<true, false, true>();
     printGraph();
 

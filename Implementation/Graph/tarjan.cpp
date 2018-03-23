@@ -1,22 +1,7 @@
-#include <bits/stdc++.h>
+#include <stack>
+#include <set>
 
-using namespace std;
-
-#define INVALID_NODE INT_MAX/2
-#define INVALID_WEIGHT INT_MAX/2
-#define FOREACH(G, u, v) for (Node v : G[u])
-#define FOR(G, u) for (int i = 0; i < G[u].size(); ++i)
-#define NODES(u, N) for (Node u = 0; u < N; ++u)
-
-typedef int Node;
-typedef int Weight;
-
-template<typename type = Node>
-using Graph = vector<vector<type>>;
-
-int n, m, h;
-Graph<Node> g;
-vector<int> a;
+#include "definitions.h"
 
 int cur_num, num_scc;
 vector<bool> visited, inStack;
@@ -37,6 +22,10 @@ void initialize() {
     scc_num.assign(n, 0);
 }
 
+/** 
+ * Simple Depth-First-Search extended with
+ * SCC calculation
+ */
 void visit(Node u) {
     visited[u] = true;
     num[u] = low[u] = cur_num++;
@@ -64,6 +53,11 @@ void visit(Node u) {
     }
 }
 
+/**
+ * Computes all strongly connected components of the input
+ * graph g. Afterwards, array scc_num contains the corresponding
+ * SCC number foreach node.
+ */
 void tarjan() {
     initialize();
     NODES(u, n) {
@@ -73,7 +67,15 @@ void tarjan() {
     }
 }
 
+/**
+ * Contracts the input graph by contracting all SCCs 
+ * into a single node.
+ * Precondition: Call tarjan() before calling contractSCC()
+ */
 Graph<Node> contractSCC() {
+    // Using a temporary graph which contains a edge set
+    // foreach node to prevent duplication check during
+    // contraction
     vector<set<Node>> tmp_g(num_scc, set<Node>());
     scc_to_node.assign(num_scc, vector<Node>());
 
@@ -82,10 +84,12 @@ Graph<Node> contractSCC() {
         scc_to_node[scc_u].push_back(u);
         FOREACH(g, u, v) {
             Node scc_v = scc_num[v];
+            // Ignore self loops
             if (scc_u != scc_v) tmp_g[scc_u].insert(scc_v);
         }
     }
 
+    // Build graph data structure for contracted graph
     Graph<Node> contraction(num_scc, vector<Node>());
     NODES(u, num_scc) {
         FOREACH(tmp_g, u, v) {
@@ -95,42 +99,27 @@ Graph<Node> contractSCC() {
     return contraction;
 }
 
+// Use Implementation/Graph/input/4.in for example input
 int main() {
-    cin >> n >> m >> h;
-    g.assign(n, vector<int>());
-    a.assign(n, 0);
-    for (int i = 0; i < n; ++i) cin >> a[i];
-    for (int i = 0; i < m; ++i) {
-        int x, y;
-        cin >> x >> y;
-        x--; y--;
-        if ( (a[x] + 1) % h == a[y] ) {
-            g[x].push_back(y);
-        }
-        if ( (a[y] + 1) % h == a[x] ) {
-            g[y].push_back(x);
-        }
-    }
+    // Read unweighted directed graph (1-indexed)
+    readGraph<false, false, true>();
+    printGraph<false, true>();
 
+    // Compute strongly connected components with Tarjan's algorithm
     tarjan();
 
-    Graph<Node> c = contractSCC();
-
-    int min_scc = -1;
-    int min_size = INT_MAX;
-    NODES(u, num_scc) {
-        if (c[u].size() == 0) {
-            if (min_size > scc_to_node[u].size()) {
-                min_scc = u;
-                min_size = scc_to_node[u].size();
-            }
-        }
+    // Print strongly connected components
+    cout << "Number of strongly connected components: " << num_scc << endl;
+    cout << "Nodes to SCC: ";
+    NODES(u, n) {
+        cout << u << "(" << scc_num[u] << ") ";
     }
+    cout << endl;
 
-    cout << min_size << endl;
-    for (int i = 0; i < min_size; ++i) {
-        cout << (scc_to_node[min_scc][i] + 1) << (i == min_size - 1 ? "\n" : " ");
-    }
-
-    return 0;
+    // Contract strongly connected components
+    Graph<Node> contraction = contractSCC();
+    cout << "Contracted Graph:" << endl;
+    printGraph<false>(contraction);
+    cout << "SCC to Nodes: " << endl;
+    printGraph<true>(scc_to_node);
 }

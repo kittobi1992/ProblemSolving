@@ -2,56 +2,93 @@
 
 using namespace std;
 
+#define INVALID_NODE INT_MAX/2
+#define INVALID_WEIGHT INT_MAX/2
+#define FOREACH(G, u, v) for (Node v : G[u])
+#define FOR(G, u) for (int i = 0; i < G[u].size(); ++i)
+#define NODES(u, N) for (Node u = 0; u < n; ++u)
+#define MAXN 102
 
-#define INF INT_MAX
-#define MAXV 102
+typedef int Node;
+typedef int Weight;
 
-typedef vector<vector<int>> graph;
+template<typename type = Node>
+using Graph = vector<vector<type>>;
 
-int res[MAXV][MAXV];
+Weight res[MAXN][MAXN];
+Node parent[MAXN];
 int N, M, W, s, t;
-graph g;
-vector<int> parent;
+Graph<Node> g;
+
+/**
+ * Simple fast reset flag array data structure
+ * If visited[i] == thres, than visited[i] is true,
+ * otherwise (visited[i] < thres) it is interpreted as false.
+ * We can simply reset all entries to false by incrementing thres.
+ */
+int visited[MAXN];
+int thres = 1;
+
 
 void initalize() {
-    memset(res,0,sizeof res);
-    g.assign(N,vector<int>());
-    parent.assign(N,-1);
-    iota(parent.begin(),parent.end(),0);
+    memset(res, 0, sizeof res);
+    memset(parent, INVALID_NODE, sizeof parent);
+    g.assign(N, vector<int>());
 }
 
+/**
+ * Breath-First-Search starting from source node s 
+ * and searching for sink node t in the residual graph.
+ * Returns true, if a path from s to t in the residual 
+ * graph exists.
+ */
 bool bfs() {
-    vector<bool> vis(N,false);
-    queue<int> q;
-    q.push(s); vis[s] = true; parent[s] = s;
-    while(!q.empty()) {
-        int u = q.front(); q.pop();
-        if(u == t) return true;
-        for(int i = 0; i < g[u].size(); ++i) {
-            int v = g[u][i];
-            if(res[u][v] && !vis[v]) {
-                q.push(v); vis[v] = true; parent[v] = u;
+    thres++;  // reset visited array
+    queue<Node> q;
+    q.push(s);
+    visited[s] = thres;
+    parent[s] = -1;
+
+    while (!q.empty()) {
+        Node u = q.front();
+        q.pop();
+        if (u == t) return true;
+
+        FOREACH(g, u, v) {
+            if (visited[v] < thres && res[u][v]) {
+                q.push(v);
+                visited[v] = thres;
+                parent[v] = u;
             }
         }
     }
+
     return false;
 }
 
-int augment(int v, int minFlow) {
-    if(v == s) return minFlow;
-    else {
-        int f = augment(parent[v],min(minFlow,res[parent[v]][v]));
-        res[parent[v]][v] -= f;
-        res[v][parent[v]] += f;
-        return f;
-    }
+/**
+ * Increases the flow along the augmenting path found
+ * by the BFS traversal of the residual graph.
+ * Returns the amount of flow which is send over
+ * the augmenting path.
+ * NOTE: Function should be called with sink node t.
+ */
+Weight augment(Node u, Weight flow = INVALID_WEIGHT) {
+    if (parent[u] == -1) return flow;
+    Weight min_flow = augment(parent[u], min(flow, res[parent[u]][u]));
+    res[parent[u]][u] -= min_flow;
+    res[u][parent[u]] += min_flow;
+    return min_flow;
 }
 
-int maxFlow() {
-    int mf = 0;
-    while(bfs()) {
-        int f = augment(t,INF);
-        mf += f;
+/**
+ * Edmond-Karps Maximum Flow Algorithm
+ * Returns the value of the maximum flow.
+ */
+Weight maximumFlow() {
+    Weight mf = 0;
+    while (bfs()) {
+        mf += augment(t);
     }
     return mf;
 }
@@ -96,7 +133,7 @@ int main() {
             res[u2][v2] = c;
         }
         
-        cout << maxFlow() << endl;
+        cout << maximumFlow() << endl;
         
     }
     
