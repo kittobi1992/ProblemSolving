@@ -71,12 +71,17 @@ void printGraph() {
 
 template<bool one_indexed = true,
          typename type = Node>
-void printGraph(const Graph<type>& G) {
+void printGraph(const Graph<type>& G, const Graph<Weight>* W = nullptr) {
     cout << "N = " << G.size() << endl;
     NODES(u, G.size()) {
         cout << "Node " << (one_indexed ? (u+1) : u) << ": ";
-        FOREACH(G, u, v) {
-            cout << (one_indexed ? (v+1) : v) << " ";
+        FOR(G, u) {
+            int v = G[u][i];
+            cout << (one_indexed ? (v+1) : v);
+            if (W) {
+                cout << "(" << (*W)[u][i] << ")";
+            }
+            cout << " ";
         }
         cout << endl;
     }
