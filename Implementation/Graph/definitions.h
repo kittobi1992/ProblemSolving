@@ -8,6 +8,7 @@ using namespace std;
 #define INVALID_WEIGHT INT_MAX/2
 #define FOREACH(G, u, v) for (Node v : G[u])
 #define FOR(G, u) for (int i = 0; i < G[u].size(); ++i)
+#define NODES(u, N) for (Node u = 0; u < n; ++u)
 
 typedef int Node;
 typedef int Weight;
