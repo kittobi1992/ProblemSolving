@@ -28,7 +28,7 @@ d. Interval Sum
 e. Interval Product
 4. [2D Range Search](https://github.com/kittobi1992/ProblemSolving/blob/master/Implementation/Datastructures/2D_range_search.cpp)  
 Given a rectangle the data structure returns all points inside the rectangle.
-5. [2D Range Maximum Query (K2Treap)](https://github.com/kittobi1992/ProblemSolving/blob/master/Implementation/Datastructures/segment_tree.cpp)  
+5. [2D Range Maximum Query (K2Treap)](https://github.com/kittobi1992/ProblemSolving/blob/master/Implementation/Datastructures/k2treap.cpp)  
 Given a rectangle the data structure returns the point with maximum weight inside the rectangle.
 6. [Fenwick Tree](https://github.com/kittobi1992/ProblemSolving/blob/master/Implementation/Datastructures/fenwick_tree.cpp)  
 Implements interval sum in O(1) with update functionallity in O(log(n))
